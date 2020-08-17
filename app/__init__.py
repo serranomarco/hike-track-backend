@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from app.config import Config
 from app.models import db
-from .routes import index, user
+from .routes import index, user, post
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -14,3 +14,4 @@ db.init_app(app)
 migrate = Migrate(app, db)
 app.register_blueprint(index.bp)
 app.register_blueprint(user.bp)
+app.register_blueprint(post.bp)
