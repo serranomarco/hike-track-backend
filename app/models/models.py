@@ -124,6 +124,17 @@ class Post(db.Model):
     like = db.relationship('Like', back_populates='post')
     comment = db.relationship('Comment', back_populates='post')
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'location_id': self.location_id,
+            'title': self.title,
+            'text': self.text,
+            'photo_url': self.photo_url,
+            'created_at': self.created_at
+        }
+
 
 @dataclass
 class Like(db.Model):
