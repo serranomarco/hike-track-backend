@@ -12,6 +12,12 @@ def register_user():
     data = request.get_json()
     print(data)
 
+    email = User.query.filter(User.email == data['email']).all()
+    username = User.query.filter(User.username == data['username']).all()
+
+    if email or username:
+        return {'error': 'User already exists'}
+
     new_user = {
         'id': len(User.query.all()) + 1,
         'username': data['username'],
@@ -44,4 +50,4 @@ def login_user():
         print('---------LOGGING IN--------')
         return {'token': user.get_token(), 'username': user.username, 'id': user.id} if user.check_password(password) else {'error': 'Login failed'}
     except:
-        return {'error': 'user was not found'}
+        return {'error': 'User was not found!'}
