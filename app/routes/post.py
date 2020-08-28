@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from app.config import S3_BUCKET, S3_KEY, S3_SECRET
+import boto3
 from app.models import db, Post, User, Comment, Like
 from sqlalchemy import and_
+import json
 
 
 bp = Blueprint('post', __name__, url_prefix='/api/posts')
@@ -17,12 +20,20 @@ def make_post(id):
     print(current_user)
     if current_user != id:
         return jsonify({'message': 'Unauthorized user!'}), 401
-    data = request.get_json()
-    print(data)
+    data = request.form
+
+    file = request.files["image"]
+
+    s3_resource = boto3.resource('s3')
+    my_bucket = s3_resource.Bucket(S3_BUCKET)
+    my_bucket.Object(file.filename).put(
+        Body=file, ACL='public-read')
 
     new_post = {
         'user_id': id,
-        **data
+        'text': data['text'],
+        'title': data['title'],
+        'photo_url': f'https://{S3_BUCKET}.s3-us-west-2.amazonaws.com/{my_bucket.Object(file.filename).key}'
     }
 
     post = Post(**new_post)
@@ -35,7 +46,7 @@ def make_post(id):
 # get a post
 
 
-@bp.route('/<int:id>')
+@ bp.route('/<int:id>')
 def get_post(id):
     post_query = Post.query.filter(Post.id == id).all()
     print('------QUERYING FOR POST------')
@@ -46,8 +57,8 @@ def get_post(id):
 # delete a post
 
 
-@bp.route('/<int:id>', methods=['DELETE'])
-@jwt_required
+@ bp.route('/<int:id>', methods=['DELETE'])
+@ jwt_required
 def delete_post(id):
     current_user = get_jwt_identity()
     post = Post.query.filter(Post.id == id).all()
@@ -62,8 +73,8 @@ def delete_post(id):
 # update a post
 
 
-@bp.route('/<int:post_id>/user/<int:user_id>', methods=['PUT'])
-@jwt_required
+@ bp.route('/<int:post_id>/user/<int:user_id>', methods=['PUT'])
+@ jwt_required
 def update_post(post_id, user_id):
     data = request.get_json()
     current_user = get_jwt_identity()
@@ -82,8 +93,8 @@ def update_post(post_id, user_id):
 
 
 # get all posts for a user
-@bp.route('/user/<int:id>')
-@jwt_required
+@ bp.route('/user/<int:id>')
+@ jwt_required
 def get_posts(id):
     current_user = get_jwt_identity()
     if current_user != id:
@@ -103,8 +114,8 @@ def get_posts(id):
 
 
 # make a comment on a post
-@bp.route('/<int:post_id>/user/<int:user_id>/comment', methods=['POST'])
-@jwt_required
+@ bp.route('/<int:post_id>/user/<int:user_id>/comment', methods=['POST'])
+@ jwt_required
 def make_comment(post_id, user_id):
     current_user = get_jwt_identity()
     print('THIS IS THE CURRENT USER:')
@@ -130,8 +141,8 @@ def make_comment(post_id, user_id):
 # like a post
 
 
-@bp.route('/<int:post_id>/like', methods=['POST'])
-@jwt_required
+@ bp.route('/<int:post_id>/like', methods=['POST'])
+@ jwt_required
 def make_like(post_id):
     current_user = get_jwt_identity()
     existing_like = Like.query.filter(
@@ -154,8 +165,8 @@ def make_like(post_id):
 # delete a like
 
 
-@bp.route('/<int:post_id>/like', methods=['DELETE'])
-@jwt_required
+@ bp.route('/<int:post_id>/like', methods=['DELETE'])
+@ jwt_required
 def delete_like(post_id):
     current_user = get_jwt_identity()
     like = Like.query.filter(
