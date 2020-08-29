@@ -10,7 +10,6 @@ bp = Blueprint('user', __name__, url_prefix='/api/users')
 @bp.route('/register', methods=['POST'])
 def register_user():
     data = request.get_json()
-    print(data)
 
     email = User.query.filter(User.email == data['email']).all()
     username = User.query.filter(User.username == data['username']).all()
@@ -31,7 +30,6 @@ def register_user():
     user.set_password = data['password']
 
     print('-------USER WAS ADDED------')
-    print(user)
 
     db.session.add(user)
     db.session.commit()
@@ -41,7 +39,6 @@ def register_user():
 @bp.route('/login', methods=['POST'])
 def login_user():
     data = request.get_json()
-    print(data)
     email = data['email']
     password = data['password']
 

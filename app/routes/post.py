@@ -4,7 +4,6 @@ from app.config import S3_BUCKET, S3_KEY, S3_SECRET
 import boto3
 from app.models import db, Post, User, Comment, Like
 from sqlalchemy import and_
-import json
 
 
 bp = Blueprint('post', __name__, url_prefix='/api/posts')
@@ -16,25 +15,24 @@ bp = Blueprint('post', __name__, url_prefix='/api/posts')
 @jwt_required
 def make_post(id):
     current_user = get_jwt_identity()
-    print('THIS IS THE CURRENT USER:')
-    print(current_user)
     if current_user != id:
         return jsonify({'message': 'Unauthorized user!'}), 401
     data = request.form
 
-    file = request.files["image"]
-
-    s3_resource = boto3.resource('s3')
-    my_bucket = s3_resource.Bucket(S3_BUCKET)
-    my_bucket.Object(file.filename).put(
-        Body=file, ACL='public-read')
+    if request.files:
+        file = request.files["image"]
+        s3_resource = boto3.resource('s3')
+        my_bucket = s3_resource.Bucket(S3_BUCKET)
+        my_bucket.Object(file.filename).put(
+            Body=file, ACL='public-read')
 
     new_post = {
         'user_id': id,
         'text': data['text'],
         'title': data['title'],
-        'photo_url': f'https://{S3_BUCKET}.s3-us-west-2.amazonaws.com/{my_bucket.Object(file.filename).key}'
     }
+    if request.files:
+        new_post['photo_url'] = f'https://{S3_BUCKET}.s3-us-west-2.amazonaws.com/{my_bucket.Object(file.filename).key}'
 
     post = Post(**new_post)
 
@@ -62,7 +60,6 @@ def get_post(id):
 def delete_post(id):
     current_user = get_jwt_identity()
     post = Post.query.filter(Post.id == id).all()
-    print(post)
     if current_user != post[0].user_id:
         return jsonify({'message': 'You are not authorized to delete this post!'}), 401
     db.session.delete(post[0])
@@ -78,8 +75,6 @@ def delete_post(id):
 def update_post(post_id, user_id):
     data = request.get_json()
     current_user = get_jwt_identity()
-    print('THIS IS THE CURRENT USER:')
-    print(current_user)
     if current_user != user_id:
         return jsonify({'message': 'Unauthorized user!'}), 401
     post = Post.query.filter(Post.id == post_id).all()
@@ -118,12 +113,9 @@ def get_posts(id):
 @ jwt_required
 def make_comment(post_id, user_id):
     current_user = get_jwt_identity()
-    print('THIS IS THE CURRENT USER:')
-    print(current_user)
     if current_user != id:
         return jsonify({'message': 'Unauthorized user!'}), 401
     data = request.get_json()
-    print(data)
 
     new_comment = {
         'user_id': user_id,

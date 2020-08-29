@@ -36,6 +36,7 @@ flask db upgrade                # will create tables in database
 - Flask
 - python-dotenv
 - psycopg2-binary
+- boto3
 
 ## API Endpoints
 

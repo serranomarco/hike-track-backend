@@ -4,7 +4,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from app.config import Config, S3_BUCKET, S3_KEY, S3_SECRET
 from app.models import db
-from .routes import index, user, post, files
+from .routes import index, user, post, location, files
 import boto3
 
 s3 = boto3.client(
@@ -21,4 +21,5 @@ migrate = Migrate(app, db)
 app.register_blueprint(index.bp)
 app.register_blueprint(user.bp)
 app.register_blueprint(post.bp)
+app.register_blueprint(location.bp)
 app.register_blueprint(files.bp)

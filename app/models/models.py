@@ -61,6 +61,8 @@ class Location(db.Model):
     state: str
     country: str
     description: str
+    latitude: int
+    longitude: int
 
     __tablename__ = 'locations'
 
@@ -70,12 +72,22 @@ class Location(db.Model):
     state = db.Column(db.String(100), nullable=False)
     country = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=True)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
 
     user_hikes = db.relationship('UserHike', back_populates='location')
     post = db.relationship('Post', back_populates='location')
 
     def to_dict(self):
-        return {'id': self.id, 'name': self.name, 'city': self.city, 'state': self.state, 'country': self.country, 'description': self.description}
+        return {
+            'id': self.id,
+            'name': self.name,
+            'city': self.city, 'state': self.state,
+            'country': self.country,
+            'description': self.description,
+            'latitude': self.latitude,
+            'longitude': self.longitude
+        }
 
 
 @dataclass
@@ -95,7 +107,11 @@ class UserHike(db.Model):
     location = db.relationship('Location', back_populates='user_hikes')
 
     def to_dict(self):
-        return {'id': self.id, 'user_id': self.user_id, 'location_id': self.location_id}
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'location_id': self.location_id
+        }
 
 
 @dataclass
