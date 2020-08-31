@@ -14,7 +14,6 @@ bp = Blueprint('post', __name__, url_prefix='/api/posts')
 @bp.route('/user/<int:id>', methods=['POST'])
 @jwt_required
 def make_post(id):
-    print(request.form)
     current_user = get_jwt_identity()
     if current_user != id:
         return jsonify({'message': 'Unauthorized user!'}), 401
@@ -27,13 +26,20 @@ def make_post(id):
         my_bucket.Object(file.filename).put(
             Body=file, ACL='public-read')
 
-    new_post = {
-        'user_id': id,
-        'location_id': data['location'],
-        'text': data['text'],
-        'title': data['title'],
+    if data['location'] == 'None':
+        new_post = {
+            'user_id': id,
+            'text': data['text'],
+            'title': data['title'],
+        }
+    else:
+        new_post = {
+            'user_id': id,
+            'location_id': data['location'],
+            'text': data['text'],
+            'title': data['title'],
+        }
 
-    }
     if request.files:
         new_post[
             'photo_url'] = f'https://{S3_BUCKET}.s3-us-west-2.amazonaws.com/{my_bucket.Object(file.filename).key}'
@@ -106,8 +112,9 @@ def get_posts(id):
     print('-----QUERYING DATABASE------')
     liked_posts = [
         post.like[0].post_id for post in posts if post.like and post.like[0].user_id == current_user]
+
     posts = [{'id': post.id, 'username': post.user.username, 'title': post.title, 'text': post.text,
-              'photo_url': post.photo_url, 'location': post.location.name, 'created_at': post.created_at} for post in posts]
+              'photo_url': post.photo_url, 'location': post.location.name if post.location else None, 'created_at': post.created_at} for post in posts]
     posts.sort(key=sorted_posts, reverse=True)
     return jsonify({'liked_posts': liked_posts, 'posts': posts})
 
