@@ -18,6 +18,7 @@ flask-jwt-extended = "*"
 flask-migrate = "*"
 boto3 = "*"
 pylint = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.8"
