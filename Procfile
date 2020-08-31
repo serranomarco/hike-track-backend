@@ -1,1 +1,1 @@
-web: flask run FLASK_ENV=production
+web: flask run
