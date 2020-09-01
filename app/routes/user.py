@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import db, User
 
 
@@ -35,6 +36,8 @@ def register_user():
     db.session.commit()
     return {'token': user.get_token(), 'username': user.username, 'id': user.id}, 201
 
+# login a user
+
 
 @bp.route('/login', methods=['POST'])
 def login_user():
@@ -48,3 +51,14 @@ def login_user():
         return {'token': user.get_token(), 'username': user.username, 'id': user.id} if user.check_password(password) else {'error': 'Login failed'}
     except:
         return {'error': 'User was not found!'}
+
+# get a user's profile
+
+
+@bp.route('/user')
+@jwt_required
+def get_user():
+    user = get_jwt_identity()
+    user_info = User.query.filter(User.id == user).one()
+    print('-----GETTING USER INFO-------')
+    return {'username': user_info.username, 'profile_pic_url': user_info.profile_pic_url, 'bio': user_info.bio, 'first_name': user_info.first_name, 'last_name': user_info.last_name}

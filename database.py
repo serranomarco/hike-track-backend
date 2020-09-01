@@ -8,7 +8,7 @@ with app.app_context():
     db.drop_all()
     db.create_all()
 
-    user = User(username='demouser', email='demo@gmail.com', first_name='Demo', last_name='User',
+    user = User(username='demouser', email='demo@gmail.com', first_name='Demo', last_name='User', profile_pic_url='https://hike-track-app.s3-us-west-2.amazonaws.com/hiking-profile-pic.jpeg',
                 bio='I am a Demo User. Welcome to the Hike Track app, a blog site where hikers all around the coutry can share and experience new hikes, created by Marco Serrano! You can find his GitHub and LinkedIn links in the bottom right :)')
     user.set_password = 'password'
     db.session.add(user)

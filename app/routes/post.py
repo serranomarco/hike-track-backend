@@ -114,7 +114,7 @@ def get_posts(id):
         post.like[0].post_id for post in posts if post.like and post.like[0].user_id == current_user]
 
     posts = [{'id': post.id, 'username': post.user.username, 'title': post.title, 'text': post.text,
-              'photo_url': post.photo_url, 'location': post.location.name if post.location else None, 'created_at': post.created_at} for post in posts]
+              'photo_url': post.photo_url, 'location': post.location.name if post.location else None, 'comments': [{'id': comment.id, 'comment': comment.comment, 'username': comment.user.username} for comment in post.comment], 'created_at': post.created_at} for post in posts]
     posts.sort(key=sorted_posts, reverse=True)
     return jsonify({'liked_posts': liked_posts, 'posts': posts})
 
@@ -124,7 +124,7 @@ def get_posts(id):
 @ jwt_required
 def make_comment(post_id, user_id):
     current_user = get_jwt_identity()
-    if current_user != id:
+    if current_user != user_id:
         return jsonify({'message': 'Unauthorized user!'}), 401
     data = request.get_json()
 
@@ -173,7 +173,7 @@ def make_like(post_id):
 def delete_like(post_id):
     current_user = get_jwt_identity()
     like = Like.query.filter(
-        Post.id == post_id and User.id == current_user).all()
+        and_(Like.post_id == post_id, Like.user_id == current_user)).all()
     db.session.delete(like[0])
     db.session.commit()
     print('-------LIKE DELETED-----')
