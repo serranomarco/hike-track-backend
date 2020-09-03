@@ -127,6 +127,6 @@ def get_all_users():
     users = User.query.filter(
         User.id != user_id).all()
     print('-----GETTING ALL USERS------')
-    users = [{'username': user.username, 'profile_pic_url': user.profile_pic_url,
+    users = [{'id': user.id, 'username': user.username, 'profile_pic_url': user.profile_pic_url,
               'bio': user.bio, 'first_name': user.first_name, 'last_name': user.last_name} for user in users]
     return jsonify(users)

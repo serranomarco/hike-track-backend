@@ -102,8 +102,6 @@ def update_post(post_id, user_id):
 @ jwt_required
 def get_posts(id):
     current_user = get_jwt_identity()
-    if current_user != id:
-        return jsonify({'message': 'Unauthorized user!'}), 401
     posts = Post.query.filter(Post.user_id == id).all()
 
     def sorted_posts(e):
