@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.config import S3_BUCKET, S3_KEY, S3_SECRET
 import boto3
-from app.models import db, Post, User, Comment, Like
+from app.models import db, Post, User, Comment, Like, Follow
 from sqlalchemy import and_
 
 
@@ -62,6 +62,7 @@ def get_post(id):
             'title': post_query[0].title, 'username': post_query[0].user.username}
     return jsonify(post)
 
+
 # delete a post
 
 
@@ -111,7 +112,27 @@ def get_posts(id):
     liked_posts = [
         post.like[0].post_id for post in posts if post.like and post.like[0].user_id == current_user]
 
-    posts = [{'id': post.id, 'username': post.user.username, 'title': post.title, 'text': post.text,
+    posts = [{'id': post.id, 'profile_pic': post.user.profile_pic_url, 'username': post.user.username, 'title': post.title, 'text': post.text,
+              'photo_url': post.photo_url, 'location': post.location.name if post.location else None, 'comments': [{'id': comment.id, 'comment': comment.comment, 'username': comment.user.username} for comment in post.comment], 'created_at': post.created_at} for post in posts]
+    posts.sort(key=sorted_posts, reverse=True)
+    return jsonify({'liked_posts': liked_posts, 'posts': posts})
+
+# get a users feed
+
+
+@bp.route('/feed')
+@jwt_required
+def get_feed():
+    current_user = get_jwt_identity()
+
+    def sorted_posts(e):
+        return e['created_at']
+    posts = Post.query.filter().all()
+    print('-----QUERYING DATABASE------')
+    liked_posts = [
+        post.like[0].post_id for post in posts if post.like and post.like[0].user_id == current_user]
+
+    posts = [{'id': post.id, 'profile_pic': post.user.profile_pic_url, 'username': post.user.username, 'title': post.title, 'text': post.text,
               'photo_url': post.photo_url, 'location': post.location.name if post.location else None, 'comments': [{'id': comment.id, 'comment': comment.comment, 'username': comment.user.username} for comment in post.comment], 'created_at': post.created_at} for post in posts]
     posts.sort(key=sorted_posts, reverse=True)
     return jsonify({'liked_posts': liked_posts, 'posts': posts})

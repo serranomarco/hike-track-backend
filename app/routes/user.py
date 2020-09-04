@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.config import S3_BUCKET, S3_KEY, S3_SECRET
 import boto3
-from app.models import db, User
+from app.models import db, User, Follow
 from sqlalchemy import and_
 
 
@@ -55,16 +55,18 @@ def login_user():
     except:
         return {'error': 'User was not found!'}
 
-# get a user's profile
+# get a current user's profile
 
 
 @bp.route('/user')
 @jwt_required
 def get_user():
     user = get_jwt_identity()
+    print(user)
     user_info = User.query.filter(User.id == user).one()
+    followers = Follow.query.filter(Follow.follower_id == user).all()
     print('-----GETTING USER INFO-------')
-    return {'username': user_info.username, 'email': user_info.email, 'profile_pic_url': user_info.profile_pic_url, 'bio': user_info.bio, 'first_name': user_info.first_name, 'last_name': user_info.last_name}
+    return {'username': user_info.username, 'email': user_info.email, 'profile_pic_url': user_info.profile_pic_url, 'bio': user_info.bio, 'first_name': user_info.first_name, 'last_name': user_info.last_name, 'followers': [{'id': follower.id} for follower in followers]}
 
 # update user profile
 
@@ -117,16 +119,72 @@ def search_users():
               'bio': user.bio, 'first_name': user.first_name, 'last_name': user.last_name} for user in users]
     return jsonify(users)
 
-# get all users
+# get a users
 
 
-@bp.route('/all')
+@bp.route('/<username>')
 @jwt_required
-def get_all_users():
+def get_all_users(username):
     user_id = get_jwt_identity()
-    users = User.query.filter(
-        User.id != user_id).all()
-    print('-----GETTING ALL USERS------')
-    users = [{'id': user.id, 'username': user.username, 'profile_pic_url': user.profile_pic_url,
-              'bio': user.bio, 'first_name': user.first_name, 'last_name': user.last_name} for user in users]
-    return jsonify(users)
+    followers = Follow.query.filter(Follow.follower_id == user_id).all()
+    following = Follow.query.filter(Follow.following_id == user_id).all()
+    user = User.query.filter(
+        and_(User.id != user_id, User.username == username)).one()
+    print('-----GETTING USER------')
+    user = {'id': user.id, 'username': user.username, 'profile_pic_url': user.profile_pic_url,
+            'bio': user.bio, 'first_name': user.first_name, 'last_name': user.last_name, 'followers': [{'id': follower.id} for follower in followers], 'following': [{'id': follow.id} for follow in following]}
+    return jsonify(user)
+
+
+# follow a user
+@bp.route('/<int:id>/follow', methods=['POST'])
+@jwt_required
+def follow_user(id):
+    user_id = get_jwt_identity()
+
+    existing_follow = Follow.query.filter(
+        and_(Follow.following_id == id, Follow.follower_id == user_id)).all()
+
+    if existing_follow:
+        return {'message': 'follow already exists!'}
+
+    new_follow = {
+        'follower_id': user_id,
+        'following_id': id
+    }
+
+    print('-----FOLLOWING USER-----')
+    follow = Follow(**new_follow)
+    db.session.add(follow)
+    db.session.commit()
+    return {'follower_id': follow.follower_id, 'following_id': follow.following_id}
+
+
+# delete a follow
+@bp.route('/<int:id>/follow', methods=['DELETE'])
+@jwt_required
+def delete_follow(id):
+    user_id = get_jwt_identity()
+
+    follow = Follow.query.filter(
+        and_(Follow.following_id == id, Follow.follower_id == user_id)).all()
+    db.session.delete(follow[0])
+    db.session.commit()
+    print('-------LIKE DELETED-----')
+    return {'message': 'like deleted'}
+
+# get a follow
+
+
+@bp.route('/<int:id>/follow')
+@jwt_required
+def get_follow(id):
+    user_id = get_jwt_identity()
+
+    existing_follow = Follow.query.filter(
+        and_(Follow.following_id == id, Follow.follower_id == user_id)).all()
+
+    if existing_follow:
+        return {'message': 'follow already exists!'}
+
+    return {'error': 'like does not exist'}

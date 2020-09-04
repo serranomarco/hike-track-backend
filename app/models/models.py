@@ -188,3 +188,20 @@ class Comment(db.Model):
 
     user = db.relationship('User', back_populates='comment')
     post = db.relationship('Post', back_populates='comment')
+
+
+@dataclass
+class Follow(db.Model):
+    __tablename__ = 'follows'
+    id = db.Column(db.Integer, primary_key=True)
+    follower_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    following_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    follower = db.relationship('User', foreign_keys=[
+                               follower_id], backref='follows')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'follower_id': self.follower_id,
+            'following_id': self.following_id
+        }

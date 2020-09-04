@@ -1,8 +1,8 @@
 """migration
 
-Revision ID: 7bf1ec750be9
+Revision ID: b612ac5c6f32
 Revises: 
-Create Date: 2020-08-29 00:18:13.153198
+Create Date: 2020-09-03 20:58:49.016524
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7bf1ec750be9'
+revision = 'b612ac5c6f32'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -41,6 +41,14 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')
+    )
+    op.create_table('follows',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('follower_id', sa.Integer(), nullable=True),
+    sa.Column('following_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['follower_id'], ['users.id'], ),
+    sa.ForeignKeyConstraint(['following_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('posts',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -89,6 +97,7 @@ def downgrade():
     op.drop_table('comments')
     op.drop_table('user_hikes')
     op.drop_table('posts')
+    op.drop_table('follows')
     op.drop_table('users')
     op.drop_table('locations')
     # ### end Alembic commands ###
