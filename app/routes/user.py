@@ -124,12 +124,13 @@ def search_users():
 # get a users
 
 
-@bp.route('/<username>')
+@bp.route('/<username>/')
 @jwt_required
-def get_all_users(username):
+def get_all_users(username,):
     user_id = get_jwt_identity()
-    followers = Follow.query.filter(Follow.follower_id == user_id).all()
-    following = Follow.query.filter(Follow.following_id == user_id).all()
+    user = User.query.filter(User.username == username)
+    followers = Follow.query.filter(Follow.follower_id == user.id).all()
+    following = Follow.query.filter(Follow.following_id == user.id).all()
     user = User.query.filter(
         and_(User.id != user_id, User.username == username)).one()
     print('-----GETTING USER------')
