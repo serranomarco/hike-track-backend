@@ -65,6 +65,8 @@ def get_user():
     print(user)
     user_info = User.query.filter(User.id == user).one()
     followers = Follow.query.filter(Follow.follower_id == user).all()
+    following = Follow.query.filter(Follow.following_id == user).all()
+
     print('-----GETTING USER INFO-------')
     return {'username': user_info.username, 'email': user_info.email, 'profile_pic_url': user_info.profile_pic_url, 'bio': user_info.bio, 'first_name': user_info.first_name, 'last_name': user_info.last_name, 'followers': [{'id': follower.id} for follower in followers], 'following': [{'id': follow.id} for follow in following]}
 
