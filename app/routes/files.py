@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from app.config import S3_BUCKET, S3_KEY, S3_SECRET
+from app.config import S3_BUCKET
 import boto3
 
 

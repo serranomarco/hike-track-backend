@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.config import S3_BUCKET, S3_KEY, S3_SECRET
+from app.config import S3_BUCKET
 import boto3
 from app.models import db, Post, User, Comment, Like, Follow
 from sqlalchemy import and_

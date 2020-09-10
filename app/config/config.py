@@ -9,5 +9,5 @@ class Config:
 
 
 S3_BUCKET = environ.get('S3_BUCKET')
-S3_KEY = environ.get('S3_KEY')
-S3_SECRET = environ.get('S3_SECRET')
+S3_KEY = environ.get('AWS_ACCESS_KEY_ID')
+S3_SECRET = environ.get('AWS_SECRET_ACCESS_KEY')
